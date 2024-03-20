@@ -21,9 +21,9 @@ MODULE GSTATS_WRAPPER_MOD
   CALL GSTATS(KNUM,KSWITCH)
   IF (KSWITCH > 0) THEN
      CALL roctxRangePop()
-     CALL roctxMarkA(CCDESC(KNUM))
+     CALL roctxMarkA(LABEL)
   ELSE
-     ret = roctxRangePushA(CCDESC(KNUM))
+     ret = roctxRangePushA(LABEL)
   ENDIF
 
 

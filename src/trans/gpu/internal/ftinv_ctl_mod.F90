@@ -183,6 +183,8 @@ CALL GSTATS(107,1)
 
 !   4.  Transposition
 
+ret = roctxRangePushA("TRANSPOSITION"//c_null_char)
+
 IF (PRESENT(KVSETUV)) THEN
   IVSETUV(:) = KVSETUV(:)
 ELSE
@@ -257,6 +259,9 @@ IF (KF_SCALARS_G > 0) THEN
     IST = IST+KF_SCALARS_G
   ENDIF
 ENDIF
+CALL roctxRangePop()
+CALL roctxMarkA("TRANSPOSITION"//c_null_char)
+
 CALL GSTATS(157,0)
 ! needed ? JF_FS=KF_FS-D%IADJUST_I
 #ifdef USE_CUDA_AWARE_MPI_FT

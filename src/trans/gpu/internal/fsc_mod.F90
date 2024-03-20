@@ -55,9 +55,14 @@ USE TPM_GEOMETRY    ,ONLY : G, G_NMEN
 USE TPM_FLT         ,ONLY : S
 USE TPM_GEN         ,ONLY : NOUT
 USE TPM_DIM         ,ONLY : R
+USE hip_profiling   ,ONLY : roctxRangePushA,&
+                            roctxRangePop,&
+                            roctxMarkA
+USE iso_c_binding   ,ONLY : c_null_char
 !
 
 IMPLICIT NONE
+INTEGER :: ret
 INTEGER(KIND=JPIM) :: KGL
 INTEGER(KIND=JPIM) , INTENT(IN) :: KF_UV,KF_SCALARS,KF_SCDERS
 INTEGER(KIND=JPIM) , INTENT(IN) :: KST_UV, KST_SC, KST_NSDERS, KST_EWDERS, KST_UVDERS
@@ -81,6 +86,7 @@ integer :: i,J,maxi,maxj
 real :: maxv
 
 !     ------------------------------------------------------------------
+ret = roctxRangePushA("FSC"//c_null_char)
 
 IF(MYPROC > NPROC/2)THEN
   IBEG=1
@@ -221,6 +227,8 @@ enddo
 !$OMP END TARGET DATA
 #endif
 !     ------------------------------------------------------------------
+call roctxRangePop()
+call roctxMarkA("FSC"//c_null_char)
 
 END SUBROUTINE FSC
 END MODULE FSC_MOD

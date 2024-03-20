@@ -44,9 +44,15 @@ USE TPM_DISTR       ,ONLY : D, MYSETW, MYPROC, NPROC, D_NSTAGTF,D_MSTABF,D_NSTAG
 USE TPM_TRANS       ,ONLY : FOUBUF
 USE TPM_GEOMETRY    ,ONLY : G, G_NMEN,G_NMEN_MAX
 USE TPM_GEN         ,ONLY : NOUT
+USE hip_profiling   ,ONLY : roctxRangePushA,&
+                            roctxRangePop,&
+                            roctxMarkA
+USE iso_c_binding   ,ONLY : c_null_char
 !
 
 IMPLICIT NONE
+
+INTEGER :: ret
 
 INTEGER(KIND=JPIM),INTENT(IN) :: KFIELDS
 
@@ -58,6 +64,7 @@ INTEGER(KIND=JPIM) :: JM,JF,IGLG,IPROC,IR,II,ISTA
 INTEGER(KIND=JPIM) :: IBEG,IEND,IINC,iimax1,iimax2,iimax3,iunit
 
 !     ------------------------------------------------------------------
+ret = roctxRangePushA("FOURIER_IN"//c_null_char)
 
 IF(MYPROC > NPROC/2)THEN
   IBEG=1
@@ -113,6 +120,8 @@ ENDDO
 #endif
 
 !     ------------------------------------------------------------------
+call roctxRangePop()
+call roctxMarkA("FOURIER_IN"//c_null_char)
 
 END SUBROUTINE FOURIER_IN
 END MODULE FOURIER_IN_MOD

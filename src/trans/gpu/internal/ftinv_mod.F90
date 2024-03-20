@@ -52,11 +52,15 @@ USE TPM_GEN         ,ONLY : NOUT
 USE TPM_FFT         ,ONLY : T
 USE TPM_HICFFT      ,ONLY : CREATE_PLAN_FFT, EXECUTE_PLAN_FFT
 USE TPM_DIM         ,ONLY : R, R_NNOEXTZL
+USE hip_profiling   ,ONLY : roctxRangePushA,&
+                            roctxRangePop,&
+                            roctxMarkA
 USE DEVICE_MOD
 USE ISO_C_BINDING
 
 IMPLICIT NONE
 
+INTEGER :: ret
 INTEGER(KIND=JPIM),INTENT(IN) :: KFIELDS
 INTEGER(KIND=JPIM) :: KGL
 REAL(KIND=JPRBT), INTENT(INOUT)  :: PREEL(:,:)
@@ -72,6 +76,7 @@ INTEGER :: I, J
 REAL(KIND=JPRBT), allocatable  :: ZREEL2(:,:)
 
 !     ------------------------------------------------------------------
+ret = roctxRangePushA("FTINV"//c_null_char)
 
 IF(MYPROC > NPROC/2)THEN
   IBEG=1
@@ -164,6 +169,9 @@ DEALLOCATE(ZREEL2)
 
 !!$ACC UPDATE HOST(PREEL)
 !!write(301,*) 'debug ftinv: ',PREEL(1,1),PREEL(1,2),PREEL(1,3)
+
+call roctxRangePop()
+call roctxMarkA("FTINV"//c_null_char)
 
 END SUBROUTINE FTINV
 END MODULE FTINV_MOD

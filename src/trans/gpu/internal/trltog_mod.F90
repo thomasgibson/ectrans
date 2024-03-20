@@ -900,10 +900,15 @@ MODULE TRLTOG_MOD
   !USE MYSENDSET_MOD
   !USE MYRECVSET_MOD
   USE ABORT_TRANS_MOD ,ONLY : ABORT_TRANS
+  USE hip_profiling   ,ONLY : roctxRangePushA,&
+                              roctxRangePop,&
+                              roctxMarkA
+  USE iso_c_binding   ,ONLY : c_null_char
   !
   
   IMPLICIT NONE
   
+  INTEGER :: ret
   REAL(KIND=JPRBT),  INTENT(IN)  :: PGLAT(:,:)
   INTEGER(KIND=JPIM),INTENT(IN)  :: KVSET(:)
   INTEGER(KIND=JPIM),INTENT(IN)  :: KF_FS,KF_GP
@@ -965,6 +970,7 @@ MODULE TRLTOG_MOD
 
   !*       0.    Some initializations
   !              --------------------
+  ret = roctxRangePushA("TRLTOG"//c_null_char)
   IF (LHOOK) CALL DR_HOOK('TRLTOG',0,ZHOOK_HANDLE)
 
 
@@ -1484,6 +1490,8 @@ MODULE TRLTOG_MOD
   IF (IBUFLENR > 0) DEALLOCATE(ZCOMBUFR)
 
   IF (LHOOK) CALL DR_HOOK('TRLTOG',1,ZHOOK_HANDLE)
+  call roctxRangePop()
+  call roctxMarkA("TRLTOG"//c_null_char)
 
   END SUBROUTINE TRLTOG
   END MODULE TRLTOG_MOD

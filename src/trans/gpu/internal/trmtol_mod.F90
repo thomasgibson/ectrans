@@ -269,11 +269,14 @@ USE MPL_MODULE      ,ONLY : MPL_ALLTOALLV, MPL_BARRIER, MPL_ALL_MS_COMM, MPL_WAI
 
 USE TPM_DISTR       ,ONLY : D, MTAGML, MYSETW, NPRTRW, NPROC, MYPROC
 USE TPM_GEN         ,ONLY : LSYNC_TRANS
-
+USE hip_profiling   ,ONLY : roctxRangePushA,&
+                            roctxRangePop,&
+                            roctxMarkA
+USE iso_c_binding   ,ONLY : c_null_char
 
 IMPLICIT NONE
 
-
+INTEGER :: ret
 INTEGER(KIND=JPIM),INTENT(IN)    :: KFIELD
 REAL(KIND=JPRBT)   ,INTENT(INOUT) :: PFBUF(:)
 REAL(KIND=JPRBT)   ,INTENT(INOUT) :: PFBUF_IN(:)
@@ -291,7 +294,7 @@ INTEGER(KIND=JPIM) :: IREQ
 
 
 !     ------------------------------------------------------------------
-
+ret = roctxRangePushA("TRMTOL"//c_null_char)
 IF (LHOOK) CALL DR_HOOK('TRMTOL',0,ZHOOK_HANDLE)
 
 
@@ -333,6 +336,8 @@ ENDIF
 IF (LHOOK) CALL DR_HOOK('TRMTOL',1,ZHOOK_HANDLE)
 
 !     ------------------------------------------------------------------
+CALL roctxRangePop()
+CALL roctxMarkA("TRMTOL"//c_null_char)
 
 END SUBROUTINE TRMTOL
 END MODULE TRMTOL_MOD

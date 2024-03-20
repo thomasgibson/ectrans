@@ -74,11 +74,16 @@ USE HICBLAS_MOD     ,ONLY : HIP_SGEMM_BATCHED, HIP_DGEMM_BATCHED
 #endif
 USE, INTRINSIC :: ISO_C_BINDING
 USE IEEE_ARITHMETIC
+USE hip_profiling   ,ONLY : roctxRangePushA,&
+                            roctxRangePop,&
+                            roctxMarkA
+USE iso_c_binding   ,ONLY : c_null_char
 
 IMPLICIT NONE
 
 
 !     DUMMY ARGUMENTS
+INTEGER :: ret
 INTEGER(KIND=JPIM)  :: KM
 INTEGER(KIND=JPIM)  :: KMLOC
 INTEGER(KIND=JPIM), INTENT(IN)  :: KSTA
@@ -98,6 +103,7 @@ INTEGER(KIND=JPIM) :: ISTAT
 REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
 !*       1.1      PREPARATIONS.
+ret = roctxRangePushA("LEINV"//c_null_char)
 IF (LHOOK) CALL DR_HOOK('LE_DGEMM',0,ZHOOK_HANDLE)
 !     ------------------------------------------------------------------
 
@@ -326,6 +332,9 @@ END DO
 
 IF (LHOOK) CALL DR_HOOK('LE_DGEMM',1,ZHOOK_HANDLE)
 !     ------------------------------------------------------------------
+
+CALL roctxRangePop()
+CALL roctxMarkA("LEINV"//c_null_char)
 
 END SUBROUTINE LEINV
 END MODULE LEINV_MOD
