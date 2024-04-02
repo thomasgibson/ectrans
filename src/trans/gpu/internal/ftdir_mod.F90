@@ -56,10 +56,14 @@ USE TPM_HICFFT      ,ONLY : CREATE_PLAN_FFT, EXECUTE_PLAN_FFT
 USE TPM_DIM         ,ONLY : R,R_NNOEXTZL
 USE DEVICE_MOD
 USE ISO_C_BINDING
+USE hip_profiling   ,ONLY : roctxRangePushA,&
+                            roctxRangePop,&
+                            roctxMarkA
 !
 
 IMPLICIT NONE
 
+INTEGER :: ret
 INTEGER(KIND=JPIM),INTENT(IN)  :: KFIELDS
 INTEGER(KIND=JPIM)  :: KGL
 !!!REAL(KIND=JPRBT), INTENT(INOUT) :: PREEL(KFIELDS,D%NLENGTF)
@@ -77,6 +81,7 @@ integer :: istat, idev
 REAL(KIND=JPRBT), ALLOCATABLE :: ZGTF2(:,:)
 
 !     ------------------------------------------------------------------
+ret = roctxRangePushA("FTDIR"//c_null_char)
 
 IF(MYPROC > NPROC/2)THEN
   IBEG=1
@@ -95,6 +100,9 @@ IMAX = G_NLOEN_MAX + 2 + R_NNOEXTZL
 IDIM1=size(zgtf,1)
 IDIM2=size(zgtf,2)
 ALLOCATE(ZGTF2(IDIM1,IDIM2))
+
+ret = roctxRangePushA("HICFFT_REGION"//c_null_char)
+
 #ifdef ACCGPU
 !$ACC DATA CREATE(ZGTF2)
 #endif
@@ -110,6 +118,9 @@ DO KGL=IBEG,IEND,IINC
   CALL CREATE_PLAN_FFT(IPLAN_R2C,-1,G_NLOEN(IGLG),KFIELDS)
   CALL EXECUTE_PLAN_FFT(-1,G_NLOEN(IGLG),ZGTF(1,IOFF),ZGTF2(1,IOFF),IPLAN_R2C)
 END DO
+
+CALL roctxRangePop()
+CALL roctxMarkA("HICFFT_REGION"//c_null_char)
 
 ISTAT = DEVICE_SYNCHRONIZE()
 
@@ -166,6 +177,8 @@ ENDDO
 #endif
 DEALLOCATE(ZGTF2)
 !     ------------------------------------------------------------------
+CALL roctxRangePop()
+CALL roctxMarkA("FTDIR"//c_null_char)
 
 END SUBROUTINE FTDIR
 END MODULE FTDIR_MOD

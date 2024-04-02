@@ -18,7 +18,10 @@ USE TPM_DIM         ,ONLY : R, R_NSMAX
 USE TPM_FIELDS      ,ONLY : F_RN, F_RLAPIN, ZEPSNM, ZIA
 USE TPM_DISTR       ,ONLY : D,D_NUMP,D_MYMS
 USE TPM_GEN         ,ONLY : NOUT
-
+USE hip_profiling   ,ONLY : roctxRangePushA,&
+                            roctxRangePop,&
+                            roctxMarkA
+USE iso_c_binding   ,ONLY : c_null_char
 
 !**** *VDTUV* - Compute U,V in  spectral space
 
@@ -75,6 +78,7 @@ USE TPM_GEN         ,ONLY : NOUT
 
 IMPLICIT NONE
 
+INTEGER :: ret
 INTEGER(KIND=JPIM) :: KM, kmloc
 INTEGER(KIND=JPIM), INTENT(IN) :: KFIELD
 !REAL(KIND=JPRBT), INTENT(IN)    :: PEPSNM(1:D%NUMP,0:R%NTMAX+2)
@@ -92,6 +96,8 @@ REAL(KIND=JPRBT) :: ZN(-1:R%NTMAX+4)
 REAL(KIND=JPRBT) :: ZLAPIN(-1:R%NSMAX+4)
 REAL(KIND=JPRBT) :: ZZEPSNM(-1:R%NSMAX+4)
 REAL(KIND=JPRBT), POINTER :: PU(:,:,:),PV(:,:,:),PVOR(:,:,:),PDIV(:,:,:)
+
+ret = roctxRangePushA("VDTUV"//c_null_char)
 
 IVORL = 1
 IVORU = 2*KFIELD
@@ -220,6 +226,8 @@ ENDDO
 !$ACC END DATA
 #endif
 !     ------------------------------------------------------------------
+CALL roctxRangePop()
+CALL roctxMarkA("VDTUV"//c_null_char)
 
 END SUBROUTINE VDTUV
 END MODULE VDTUV_MOD
