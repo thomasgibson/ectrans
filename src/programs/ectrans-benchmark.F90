@@ -95,6 +95,7 @@ real(kind=jprd) :: zaveave(0:jpmaxstat)
 
 ! Grid-point space data structures
 real(kind=jprb), allocatable, target :: zgmv   (:,:,:,:) ! Multilevel fields at t and t-dt
+real(kind=jprb), allocatable, target :: zgmv2  (:,:,:,:) ! Multilevel fields at t and t-dt
 real(kind=jprb), allocatable, target :: zgmvs  (:,:,:)   ! Single level fields at t and t-dt
 real(kind=jprb), pointer :: zgp3a (:,:,:,:) ! Multilevel fields at t and t-dt
 real(kind=jprb), pointer :: zgpuv   (:,:,:,:) ! Multilevel fields at t and t-dt
@@ -523,10 +524,11 @@ endif
 ndimgmv = jend_scder_EW
 
 allocate(zgmv(nproma,nflevg,ndimgmv,ngpblks))
+allocate(zgmv2(nproma,nflevg,ndimgmv,ngpblks))
 allocate(zgmvs(nproma,ndimgmvs,ngpblks))
 
 zgpuv => zgmv(:,:,1:jend_vder_EW,:)
-zgp3a => zgmv(:,:,jbegin_sc:jend_scder_EW,:)
+zgp3a => zgmv2(:,:,jbegin_sc:jend_scder_EW,:)
 zgp2  => zgmvs(:,:,:)
 
 !===================================================================================================
@@ -923,6 +925,7 @@ endif
 !===================================================================================================
 
 deallocate(zgmv)
+deallocate(zgmv2)
 deallocate(zgmvs)
 
 !===================================================================================================
