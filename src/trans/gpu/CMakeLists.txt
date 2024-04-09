@@ -104,8 +104,8 @@ foreach( prec dp sp )
                                $<${HAVE_GPU_REDUCED_MEMORY}:REDUCED_MEM>
         )
 
-        target_include_directories( trans_gpu_${prec} SYSTEM PUBLIC ${ROCM_PATH}/roctracer/include ${ROCM_PATH}/include )
-        target_link_libraries( trans_gpu_${prec} PUBLIC "-L${ROCM_PATH}/roctracer/lib -lroctracer64" "-L${ROCM_PATH}/roctracer/lib -lroctx64" )
+        target_include_directories( trans_gpu_${prec} SYSTEM PUBLIC ${ROCM_PATH}/include ${ROCM_PATH}/include ${ROCM_PATH}/include/hipfft ${ROCM_PATH}/include/hipblas ${ROCM_PATH}/include/rocblas )
+        target_link_libraries( trans_gpu_${prec} PUBLIC "-L${ROCM_PATH}/lib -lroctracer64" "-L${ROCM_PATH}/lib -lroctx64" )
 
         ectrans_target_fortran_module_directory(
           TARGET            trans_gpu_${prec}
