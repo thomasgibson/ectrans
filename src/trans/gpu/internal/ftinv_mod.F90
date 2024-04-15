@@ -131,16 +131,25 @@ DO KGL=IBEG,IEND,IINC
 
 ENDDO
 
+ret = roctxRangePushA("FTINV_CREATE_EXECUTE"//c_null_char)
 ISTAT = DEVICE_SYNCHRONIZE()
 
 DO KGL=IBEG,IEND,IINC
   IOFF=D_NSTAGTF(KGL)+1
   IGLG  = D_NPTRLS(MYSETW)+KGL-1
+  ret = roctxRangePushA("FTINV_CREATE"//c_null_char)
   CALL CREATE_PLAN_FFT(IPLAN_C2R,1,G_NLOEN(IGLG),KFIELDS)
+  call roctxRangePop()
+  call roctxMarkA("FTINV_CREATE"//c_null_char)
+  ret = roctxRangePushA("FTINV_EXECUTE"//c_null_char)
   CALL EXECUTE_PLAN_FFT(1,G_NLOEN(IGLG),PREEL(1, ioff),ZREEL2(1, ioff),IPLAN_C2R)
+  call roctxRangePop()
+  call roctxMarkA("FTINV_EXECUTE"//c_null_char)
 END DO
 
 ISTAT = DEVICE_SYNCHRONIZE()
+call roctxRangePop()
+call roctxMarkA("FTINV_CREATE_EXECUTE"//c_null_char)
 
 #ifdef OMPGPU
 !$OMP TARGET TEAMS DISTRIBUTE PARALLEL DO COLLAPSE(2) PRIVATE(IGLG,JJ) DEFAULT(NONE) &
