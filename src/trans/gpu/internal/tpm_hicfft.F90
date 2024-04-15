@@ -21,6 +21,9 @@ MODULE TPM_HICFFT
   USE, INTRINSIC :: ISO_C_BINDING
 
   USE PARKIND_ECTRANS ,ONLY : JPIM, JPRBT
+  USE hip_profiling   ,ONLY : roctxRangePushA,&
+                              roctxRangePop,&
+                              roctxMarkA
 
   IMPLICIT NONE
 
@@ -69,6 +72,7 @@ MODULE TPM_HICFFT
     TYPE(C_PTR),INTENT(OUT) :: KPLAN
     INTEGER(KIND=C_INT),INTENT(IN) :: KTYPE,KN,KLOT
 
+    INTEGER :: ret
     TYPE(C_PTR) :: IPLAN
     INTEGER(KIND=C_INT) :: IRANK, ISTRIDE
     INTEGER(KIND=C_INT) :: JL, JN
@@ -109,7 +113,10 @@ MODULE TPM_HICFFT
       ENDIF
     ENDDO
     IF( .NOT.LLFOUND )THEN
+      ret = roctxRangePushA("HICFFT_CREATE_PLAN"//c_null_char)
       CALL HICFFT_CREATE_PLAN(IPLAN,KTYPE,KN,KLOT)
+      call roctxRangePop()
+      call roctxMarkA("HICFFT_CREATE_PLAN"//c_null_char)
       KPLAN=IPLAN
       HICT%N_PLANS(KN)=HICT%N_PLANS(KN)+1
       IF( HICT%N_PLANS(KN) /= 1 )THEN
