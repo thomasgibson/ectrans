@@ -852,6 +852,7 @@ CONTAINS
 #endif
 #ifdef ACCGPU
       !$ACC END DATA
+      !$ACC WAIT(1)
 #endif
     ENDDO
 
