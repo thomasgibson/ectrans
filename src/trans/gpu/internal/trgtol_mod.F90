@@ -552,11 +552,9 @@ CONTAINS
 #endif
 #ifdef ACCGPU
       !$ACC END DATA
+      !$ACC WAIT(1)
 #endif
     ENDDO
-#ifdef ACCGPU
-    !$ACC WAIT(1)
-#endif
     CALL GSTATS(1602,1)
 
     IF (LSYNC_TRANS) THEN
