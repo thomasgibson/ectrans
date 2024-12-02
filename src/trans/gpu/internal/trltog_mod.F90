@@ -777,6 +777,13 @@ CONTAINS
 
     !  Unpack loop.........................................................
 
+#ifdef OMPGPU
+#endif
+#ifdef ACCGPU
+    !$ACC DATA CREATE(IFLDA(1:KF_GP))
+    !$ACC DATA COPYIN(IVSET(1:KF_GP))
+    !$ACC DATA COPYIN(KPTRGP(1:KF_GP)) IF(PRESENT(KPTRGP))
+#endif
     CALL GSTATS(1606,0)
     DO INR=1,IRECV_COUNTS
       IRECV=IRECV_TO_PROC(INR)
@@ -785,22 +792,42 @@ CONTAINS
       IRECV_FIELD_COUNT_V = IRECV_FIELD_COUNT(ISETV)
       ICOMBUFR_OFFSET_V = ICOMBUFR_OFFSET(INR)
 
-      IFLDS = 0
-      DO JFLD=1,KF_GP
-        IF(IVSET(JFLD) == ISETV .OR. IVSET(JFLD) == -1 ) THEN
-          IFLDS = IFLDS+1
-          IF(PRESENT(KPTRGP)) THEN
+      IF(PRESENT(KPTRGP)) THEN
+#ifdef OMPGPU
+#endif
+#ifdef ACCGPU
+        !$ACC PARALLEL LOOP DEFAULT(NONE) PRIVATE(JFLD) &
+        !$ACC&              FIRSTPRIVATE(ISETV,KF_GP) &
+        !$ACC&              REDUCTION(+:IFLDS) COPYOUT(IFLDS)
+#endif
+        IFLDS = 0
+        DO JFLD=1,KF_GP
+          IF(IVSET(JFLD) == ISETV .OR. IVSET(JFLD) == -1 ) THEN
+            IFLDS = IFLDS+1
             IFLDA(IFLDS)=KPTRGP(JFLD)
-          ELSE
+          ENDIF
+        ENDDO
+      ELSE
+#ifdef OMPGPU
+#endif
+#ifdef ACCGPU
+        !$ACC PARALLEL LOOP DEFAULT(NONE) PRIVATE(JFLD) &
+        !$ACC&              FIRSTPRIVATE(ISETV,KF_GP) &
+        !$ACC&              REDUCTION(+:IFLDS) COPYOUT(IFLDS)
+#endif
+        IFLDS = 0
+        DO JFLD=1,KF_GP
+          IF(IVSET(JFLD) == ISETV .OR. IVSET(JFLD) == -1 ) THEN
+            IFLDS = IFLDS+1
             IFLDA(IFLDS)=JFLD
           ENDIF
-        ENDIF
-      ENDDO
+        ENDDO
+      ENDIF
 
 #ifdef OMPGPU
 #endif
 #ifdef ACCGPU
-      !$ACC DATA COPYIN(IFLDA(1:IRECV_FIELD_COUNT_V)) ASYNC(1)
+      !$ACC UPDATE DEVICE(IFLDA(1:IRECV_FIELD_COUNT_V))
 #endif
 
       IRECV_WSET_OFFSET_V = IRECV_WSET_OFFSET(ISETW)
@@ -811,7 +838,7 @@ CONTAINS
 #ifdef ACCGPU
         !$ACC PARALLEL LOOP COLLAPSE(2) DEFAULT(NONE) PRIVATE(JK,JBLK,IFLD,JI) &
         !$ACC&              FIRSTPRIVATE(IRECV_FIELD_COUNT_V,IRECV_WSET_SIZE_V,&
-        !$ACC&              IRECV_WSET_OFFSET_V,NPROMA,ICOMBUFR_OFFSET_V) ASYNC(1)
+        !$ACC&              IRECV_WSET_OFFSET_V,NPROMA,ICOMBUFR_OFFSET_V)
 #endif
         DO JFLD=1,IRECV_FIELD_COUNT_V
           DO JL=1,IRECV_WSET_SIZE_V
@@ -828,7 +855,7 @@ CONTAINS
 #ifdef ACCGPU
         !$ACC PARALLEL LOOP COLLAPSE(2) DEFAULT(NONE) PRIVATE(JK,JBLK,IFLD,JI) &
         !$ACC&              FIRSTPRIVATE(IRECV_FIELD_COUNT_V,IRECV_WSET_SIZE_V, &
-        !$ACC&              IRECV_WSET_OFFSET_V,NPROMA,ICOMBUFR_OFFSET_V) ASYNC(1)
+        !$ACC&              IRECV_WSET_OFFSET_V,NPROMA,ICOMBUFR_OFFSET_V)
 #endif
         DO JFLD=1,IRECV_FIELD_COUNT_V
           DO JL=1,IRECV_WSET_SIZE_V
@@ -848,17 +875,14 @@ CONTAINS
           ENDDO
         ENDDO
       ENDIF
-#ifdef OMPGPU
-#endif
-#ifdef ACCGPU
-      !$ACC END DATA
-      !$ACC WAIT(1)
-#endif
     ENDDO
 
 #ifdef OMPGPU
 #endif
 #ifdef ACCGPU
+    !$ACC END DATA ! KPTRGP
+    !$ACC END DATA ! IVSET
+    !$ACC END DATA ! IFLDA
     !$ACC END DATA ! ZOMBUFR
 #endif
     IF (LSYNC_TRANS) THEN
