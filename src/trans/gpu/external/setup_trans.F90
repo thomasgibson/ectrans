@@ -363,6 +363,10 @@ IF(PRESENT(LDPNMONLY)) THEN
   D%LCPNMONLY=LDPNMONLY
 ENDIF
 
+IF(PRESENT(LDUSEFFTW)) THEN
+  WRITE(NOUT,*) 'SETUP_TRANS: LDUSEFFTW option is not relevant for GPUs'
+ENDIF
+
 ! Setup distribution independent dimensions
 CALL SETUP_DIMS
 
