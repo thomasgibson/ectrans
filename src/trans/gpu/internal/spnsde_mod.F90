@@ -83,6 +83,11 @@ INTEGER(KIND=JPIM) :: IJ, ISKIP, J, JN, JI, IR, II
 
 ASSOCIATE(D_NUMP=>D%NUMP, R_NTMAX=>R%NTMAX, D_MYMS=>D%MYMS)
 
+#ifdef OMPGPU
+!$OMP TARGET DATA &
+!$OMP&              MAP(PRESENT,ALLOC:R,R_NTMAX,D,D_MYMS) &
+!$OMP&              MAP(PRESENT,ALLOC:D_NUMP,PEPSNM,PF,PNSD)
+#endif
 #ifdef ACCGPU
 !$ACC DATA                                  &
 !$ACC&      PRESENT (R,R_NTMAX, D,D_MYMS)       &
@@ -134,6 +139,9 @@ DO KMLOC=1,D_NUMP
   ENDDO
 END DO
 
+#ifdef OMPGPU
+!$OMP END TARGET DATA
+#endif
 #ifdef ACCGPU
 !$ACC END DATA
 #endif
