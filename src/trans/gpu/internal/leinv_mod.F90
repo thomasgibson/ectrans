@@ -156,6 +156,11 @@ CONTAINS
 
 
 #ifdef OMPGPU
+!$OMP TARGET DATA &
+!$OMP&              MAP(PRESENT,ALLOC:D,D_MYMS,D_NUMP) &
+!$OMP&              MAP(PRESENT,ALLOC:ZINP,ZOUTS,ZOUTA,ZINP0,ZOUTS0,ZOUTA0) &
+!$OMP&              MAP(PRESENT,ALLOC:ZAA,ZAS,PIA) &
+!$OMP&              MAP(PRESENT,ALLOC:R,R_NSMAX,D_OFFSETS_GEMM2)
 #endif
 #ifdef ACCGPU
     !$ACC DATA PRESENT(D,D_MYMS,D_NUMP) &
@@ -176,6 +181,13 @@ CONTAINS
     !       PIA_2=2+1+(1..4-1)*2 ...3+(0..3)*2 .... 3,5,7,9
 
 #ifdef OMPGPU
+    !$OMP TARGET TEAMS DISTRIBUTE PARALLEL DO COLLAPSE(2) PRIVATE(KM,IA,J) &
+    !$OMP& FIRSTPRIVATE(KF_LEG,IIN_STRIDES0,IIN0_STRIDES0) &
+#ifdef _CRAYFTN
+    !$OMP&
+#else
+    !$OMP& NOWAIT
+#endif
 #endif
 #ifdef ACCGPU
     !$ACC PARALLEL LOOP COLLAPSE(2) PRIVATE(KM,IA,J) &
@@ -201,7 +213,11 @@ CONTAINS
           ENDDO
           ! those are only needed with tensor cores (zinp might contain NaNs!)
 #if defined(USE_CUTLASS) && defined(USE_CUTLASS_3XTF32)
+#ifdef OMPGPU
+#endif
+#ifdef ACCGPU
           !$ACC LOOP SEQ
+#endif
           DO J=(R_NSMAX-KM+2)/2+1,ALIGN((R_NSMAX-KM+2)/2,A)
             ZINP(JK+(J-1)*IIN_STRIDES0+D_OFFSETS_GEMM2(KMLOC)*IIN_STRIDES0)=0
           ENDDO
@@ -218,7 +234,11 @@ CONTAINS
           ENDDO
           ! those are only needed with tensor cores (zinp might contain NaNs!)
 #if defined(USE_CUTLASS) && defined(USE_CUTLASS_3XTF32)
+#ifdef OMPGPU
+#endif
+#ifdef ACCGPU
           !$ACC LOOP SEQ
+#endif
           DO J=(R_NSMAX+2)/2+1,ALIGN((R_NSMAX+2)/2,A)
             ZINP0((JK-1)/2+1+(J-1)*IIN0_STRIDES0) = 0
           ENDDO
@@ -229,6 +249,9 @@ CONTAINS
 
 
     IF (LSYNC_TRANS) THEN
+#ifdef OMPGPU
+      !$OMP TASKWAIT
+#endif
 #ifdef ACCGPU
       !$ACC WAIT(1)
 #endif
@@ -302,6 +325,9 @@ CONTAINS
 #endif
 
     IF (LSYNC_TRANS) THEN
+#ifdef OMPGPU
+      !$OMP TASKWAIT
+#endif
 #ifdef ACCGPU
       !$ACC WAIT(1)
 #endif
@@ -322,6 +348,13 @@ CONTAINS
     !       PIA_2=1+1+(1..5-1)*2 ...2+(0..4)*2 .... 2,4,6,8,10
 
 #ifdef OMPGPU
+    !$OMP TARGET TEAMS DISTRIBUTE PARALLEL DO COLLAPSE(2) PRIVATE(KM,IS,J) &
+    !$OMP& FIRSTPRIVATE(KF_LEG,IIN_STRIDES0,IIN0_STRIDES0) &
+#ifndef _CRAYFTN
+    !$OMP& NOWAIT
+#else
+    !$OMP&
+#endif
 #endif
 #ifdef ACCGPU
     !$ACC PARALLEL LOOP COLLAPSE(2) PRIVATE(KM,IS,J) &
@@ -347,7 +380,11 @@ CONTAINS
           ENDDO
 #if defined(USE_CUTLASS) && defined(USE_CUTLASS_3XTF32)
           ! those are only needed with tensor cores (zinp might contain NaNs!)
+#ifdef OMPGPU
+#endif
+#ifdef ACCGPU
           !$ACC LOOP SEQ
+#endif
           DO J=(R_NSMAX-KM+3)/2+1,ALIGN((R_NSMAX-KM+3)/2,A)
             ZINP(JK+(J-1)*IIN_STRIDES0+D_OFFSETS_GEMM2(KMLOC)*IIN_STRIDES0)=0
           ENDDO
@@ -363,7 +400,11 @@ CONTAINS
           ENDDO
           ! those are only needed with tensor cores (zinp might contain NaNs!)
 #if defined(USE_CUTLASS) && defined(USE_CUTLASS_3XTF32)
+#ifdef OMPGPU
+#endif
+#ifdef ACCGPU
           !$ACC LOOP SEQ
+#endif
           DO J=(R_NSMAX+3)/2+1,ALIGN((R_NSMAX+3)/2,A)
             ZINP0((JK-1)/2+1+(J-1)*IIN0_STRIDES0) = 0
           ENDDO
@@ -373,6 +414,9 @@ CONTAINS
     ENDDO
 
     IF (LSYNC_TRANS) THEN
+#ifdef OMPGPU
+      !$OMP TASKWAIT
+#endif
 #ifdef ACCGPU
       !$ACC WAIT(1)
 #endif
@@ -441,6 +485,9 @@ CONTAINS
     !$ACC END HOST_DATA
 #endif
     IF (LSYNC_TRANS) THEN
+#ifdef OMPGPU
+      !$OMP TASKWAIT
+#endif
 #ifdef ACCGPU
       !$ACC WAIT(1)
 #endif
@@ -451,6 +498,9 @@ CONTAINS
     CALL GSTATS(424,1)
 
 #ifdef OMPGPU
+    !$OMP TASKWAIT
+
+    !$OMP END TARGET DATA
 #endif
 #ifdef ACCGPU
     !$ACC WAIT(1)
