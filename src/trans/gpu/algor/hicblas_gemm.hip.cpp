@@ -278,6 +278,7 @@ void hipblas_dgemm_wrapper(char transa, char transb, int m, int n, int k,
 
   hipblasHandle_t handle = get_hipblas_handle();
   HICBLAS_CHECK(hipblasSetStream(handle, *(hipStream_t *)stream));
+  printf("transa=%c, transb=%c, m=%d, n=%d, k=%d lda=%d tda=%d ldb=%d tdb=%d ldc=%d tdc=%d batchCount=%d\n",transa,transb,m,n,k,lda,tda,ldb,tdb,ldc,tdc,batchCount);
 
   HICBLAS_CHECK(hipblasDgemmStridedBatched(
       handle, op_t1, op_t2, m, n, k, &alpha, (const double *)A, lda, tda,

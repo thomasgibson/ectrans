@@ -323,6 +323,7 @@ CONTAINS
       CALL GSTATS(440,1)
     ENDIF
     CALL GSTATS(422,0)
+    write(*,*) "ltinv_mod 1"
 #ifdef OMPGPU
     !$OMP TARGET DATA MAP(TO:PSPVOR,PSPDIV) IF(KF_UV > 0)
     !$OMP TARGET DATA MAP(TO:PSPSCALAR) IF(PRESENT(PSPSCALAR) .AND. KF_SCALARS > 0)
@@ -337,6 +338,7 @@ CONTAINS
     !$ACC DATA COPYIN(PSPSC3A) IF(NF_SC3A > 0)
     !$ACC DATA COPYIN(PSPSC3B) IF(NF_SC3B > 0)
 #endif
+    write(*,*) "ltinv_mod 2"
     IF (LSYNC_TRANS) THEN
       CALL GSTATS(442,0)
       CALL MPL_BARRIER(MPL_ALL_MS_COMM,CDSTRING='')
@@ -383,7 +385,7 @@ CONTAINS
     ! Compute NS derivatives if needed
     IF (LSCDERS) THEN
       CALL SPNSDE(KF_SCALARS,ZEPSNM,PSCALARS,PSCALARS_NSDER)
-    ENDIF
+   ENDIF
 
 #ifdef OMPGPU
     !$OMP END TARGET DATA
@@ -410,6 +412,7 @@ CONTAINS
     ! Legendre transforms. When converting PIA into ZOUT, we ignore the first entries of LEINV.
     ! This is because vorticity and divergence is not necessarily converted to GP space.
     CALL LEINV(ALLOCATOR,PIA(2*(IF_READIN-IF_LEG)+1:IF_READIN,:,:),ZINP,ZINP0,ZOUTS,ZOUTA,ZOUTS0,ZOUTA0,IF_LEG)
+    write(*,*) "ltinv_mod done"
 
     IF (LHOOK) CALL DR_HOOK('LTINV_MOD',1,ZHOOK_HANDLE)
     END ASSOCIATE

@@ -262,6 +262,7 @@ CONTAINS
     CALL GSTATS(424,0)
 
     IMLOC0 = FINDLOC(D_MYMS,0)
+    write(*,*) "leinv_mod 1"
     IF (IMLOC0(1) > 0) THEN
       ! compute m=0 in double precision
 #ifdef OMPGPU
@@ -275,7 +276,11 @@ CONTAINS
         & KF_LEG, G_NDGLU(0), (R_NSMAX+2)/2, &
         & 1.0_JPRD, &
         & ZINP0, IIN0_STRIDES0, 0, &
+#if defined(WORKAROUND_SIZE)
+        & ZAA0, SIZE(FG%ZAA0,1), 0, &
+#else
         & ZAA0, SIZE(ZAA0,1), 0, &
+#endif
         & 0.0_JPRD, &
         & ZOUTA0, IOUT0_STRIDES0, 0, &
         & 1, HIP_STREAM, C_LOC(ALLOCATOR%PTR))
@@ -285,8 +290,8 @@ CONTAINS
 #ifdef OMPGPU
       !$OMP END TARGET DATA
 #endif
-   ENDIF
-
+    ENDIF
+    write(*,*) "leinv_mod 2"
     DO KMLOC=1,D_NUMP
       KM = D_MYMS(KMLOC)
       KS(KMLOC) = (R_NSMAX-KM+2)/2
@@ -322,6 +327,7 @@ CONTAINS
       !$OMP END TARGET DATA
 #endif
 
+    write(*,*) "leinv_mod 3"
     IF (LSYNC_TRANS) THEN
 #ifdef ACCGPU
       !$ACC WAIT(1)
@@ -393,7 +399,7 @@ CONTAINS
         ENDIF
       ENDDO
     ENDDO
-
+    write(*,*) "leinv_mod 4"
     IF (LSYNC_TRANS) THEN
 #ifdef ACCGPU
       !$ACC WAIT(1)
@@ -404,6 +410,7 @@ CONTAINS
     ENDIF
     CALL GSTATS(424,0)
 
+    write(*,*) "leinv_mod 5"
     IF (IMLOC0(1) > 0) THEN
 #ifdef OMPGPU
       !$OMP TARGET DATA USE_DEVICE_PTR(ZAS0,ZINP0,ZOUTS0)
@@ -416,7 +423,11 @@ CONTAINS
         & KF_LEG, G_NDGLU(0), (R_NSMAX+3)/2, &
         & 1.0_JPRD, &
         & ZINP0, IIN0_STRIDES0, 0, &
+#if defined(WORKAROUND_SIZE)
+        & ZAS0, SIZE(FG%ZAS0,1), 0, &
+#else
         & ZAS0, SIZE(ZAS0,1), 0, &
+#endif
         & 0.0_JPRD, &
         & ZOUTS0, IOUT0_STRIDES0, 0, &
         & 1, HIP_STREAM, C_LOC(ALLOCATOR%PTR))
@@ -427,6 +438,7 @@ CONTAINS
       !$OMP END TARGET DATA
 #endif
     ENDIF
+    write(*,*) "leinv_mod 6"
 
     DO KMLOC=1,D_NUMP
       KM = D_MYMS(KMLOC)
@@ -473,6 +485,7 @@ CONTAINS
     ENDIF
     CALL GSTATS(424,1)
 
+    write(*,*) "leinv_mod 7"
 #ifdef OMPGPU
     !$OMP END TARGET DATA
 #endif
