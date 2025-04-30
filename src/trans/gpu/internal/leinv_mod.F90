@@ -142,6 +142,7 @@ CONTAINS
     INTEGER(KIND=JPIB)  :: IIN_SIZE
     INTEGER(KIND=JPIM)  :: IOUT0_STRIDES0, IOUT0_SIZE
     INTEGER(KIND=JPIM)  :: IIN0_STRIDES0, IIN0_SIZE
+    INTEGER(KIND=JPIM)  :: zaaidx, zinpidx, aoffsetsidx, boffsetsidx, coffsetsidx, fidx
 
     REAL(KIND=JPHOOK) :: ZHOOK_HANDLE
 
@@ -158,7 +159,7 @@ CONTAINS
     HIP_STREAM = INT(ACC_GET_HIP_STREAM(1_C_INT), C_LONG)
 #endif
 #ifdef OMPGPU
-    HIP_STREAM = 0_C_LONG
+    HIP_STREAM = 1_C_LONG
 #endif
 
     !     ------------------------------------------------------------------
@@ -264,6 +265,7 @@ CONTAINS
     IMLOC0 = FINDLOC(D_MYMS,0)
     write(*,*) "leinv_mod 1"
     IF (IMLOC0(1) > 0) THEN
+      write(*,*) "leinv_mod 1.5"
       ! compute m=0 in double precision
 #ifdef OMPGPU
       !$OMP TARGET DATA USE_DEVICE_PTR(ZAA0,ZINP0,ZOUTA0)
@@ -290,6 +292,8 @@ CONTAINS
 #ifdef OMPGPU
       !$OMP END TARGET DATA
 #endif
+      write(*,*) "leinv_mod 1.75"
+
     ENDIF
     write(*,*) "leinv_mod 2"
     DO KMLOC=1,D_NUMP
@@ -300,10 +304,50 @@ CONTAINS
       BOFFSETS(KMLOC) = D%OFFSETS_GEMM_MATRIX(KMLOC)
       COFFSETS(KMLOC) = IOUT_STRIDES0*D_OFFSETS_GEMM1(KMLOC)
     ENDDO
+    write(*,*) "leinv_mod 2.5"
     IF(IMLOC0(1) > 0) THEN
       NS(IMLOC0(1)) = 0
       KS(IMLOC0(1)) = 0
     ENDIF
+    write(*,*) "leinv_mod 2.75"
+
+    print *, "NCUR_RESOL =", NCUR_RESOL
+
+    open(newunit=zaaidx, file='zaa.txt', status='replace')
+    do fidx = lbound(ZAA, dim=1), ubound(ZAA, dim=1)
+      write(zaaidx, '(F10.5)') ZAA(fidx)
+    end do
+    close(zaaidx)
+
+    open(newunit=zinpidx, file='zinp.txt', status='replace')
+    do fidx = lbound(ZINP, dim=1), ubound(ZINP, dim=1)
+      write(zinpidx, '(F10.5)') ZINP(fidx)
+    end do
+    close(zinpidx)
+
+    open(newunit=aoffsetsidx, file='aoffsets.txt', status='replace')
+    do fidx = lbound(AOFFSETS, dim=1), ubound(AOFFSETS, dim=1)
+      write(aoffsetsidx, '(I10)') AOFFSETS(fidx)
+    end do
+    close(aoffsetsidx)
+
+    open(newunit=boffsetsidx, file='boffsets.txt', status='replace')
+    do fidx = lbound(BOFFSETS, dim=1), ubound(BOFFSETS, dim=1)
+      write(boffsetsidx, '(I10)') BOFFSETS(fidx)
+    end do
+    close(boffsetsidx)
+
+    open(newunit=coffsetsidx, file='coffsets.txt', status='replace')
+    do fidx = lbound(COFFSETS, dim=1), ubound(COFFSETS, dim=1)
+      write(coffsetsidx, '(I10)') COFFSETS(fidx)
+    end do
+    close(coffsetsidx)
+
+    print *, "IIN_STRIDES0 =", IIN_STRIDES0
+    print *, "D%LEGENDRE_MATRIX_STRIDES =", D%LEGENDRE_MATRIX_STRIDES
+    print *, "IOUT_STRIDES0 =", IOUT_STRIDES0
+    print *, "KF_LEG =", KF_LEG
+
 #ifdef OMPGPU
       !$OMP TARGET DATA USE_DEVICE_PTR(ZAA,ZINP,ZOUTA)
 #endif
@@ -319,13 +363,15 @@ CONTAINS
         & ZAA, D%LEGENDRE_MATRIX_STRIDES, BOFFSETS, &
         & 0.0_JPRBT, &
         & ZOUTA, IOUT_STRIDES0, COFFSETS, &
-        & D_NUMP, HIP_STREAM, C_LOC(ALLOCATOR%PTR))
+        & D%NUMP, HIP_STREAM, C_LOC(ALLOCATOR%PTR))
 #ifdef ACCGPU
       !$ACC END HOST_DATA
 #endif
 #ifdef OMPGPU
       !$OMP END TARGET DATA
 #endif
+
+    STOP
 
     write(*,*) "leinv_mod 3"
     IF (LSYNC_TRANS) THEN

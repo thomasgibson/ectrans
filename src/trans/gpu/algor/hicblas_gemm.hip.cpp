@@ -168,8 +168,14 @@ void run_group(Gemm &&gemm, int resol_id, int m, const int *n, const int *k,
   for (int i = 0; i < batchCount; ++i) {
     if (m == 0 || n[i] == 0 || k[i] == 0)
       continue;
+
+    printf("Starting gemm (batch id=%d)\n", i);
+    //printf("grouped gemms: batchid=%d, m=%d, n=%d, k=%d, lda=%d, ldb=%d, ldc=%d\n",i, m, n[i], k[i],lda,ldb[i],ldc);
+    printf("offsetsA[i]=%d, offsetsB[i]=%d, offsetsC[i]=%d\n", offsetsA[i],offsetsB[i],offsetsC[i]);
+    //printf("alpha=%f, beta=%f\n", alpha, beta);
     gemm(stream, m, n[i], k[i], alpha, A + offsetsA[i], lda, B + offsetsB[i],
          ldb[i], beta, C + offsetsC[i], ldc);
+    printf("Finished gemm\n\n");
   }
 }
 
@@ -200,6 +206,13 @@ public:
     HICBLAS_CHECK(hipblasSetStream(handle, stream));
 #endif
 
+    printf("m=%d, n=%d, k=%d, lda=%d, ldb=%d, ldc=%d\n",m,n,k,lda,ldb,ldc);
+    printf("alphaa=%f, betaa=%f\n", alpha, beta);
+    printf("handle = %p\n", (void*)handle);
+    printf("stream = %d\n", (int*)stream);
+
+    printf("starting kernel..\n");
+
     if constexpr (std::is_same<Real, float>::value)
       HICBLAS_CHECK(hipblasSgemm(handle, transa_, transb_, m, n, k, &alpha, A,
                                  lda, B, ldb, &beta, C, ldc));
@@ -226,6 +239,8 @@ void hipblas_sgemm_wrapper_grouped(
     op_t1 = HIPBLAS_OP_T;
   if (transb == 'T' || transb == 't')
     op_t2 = HIPBLAS_OP_T;
+
+  printf("hipblas_sgemm_wrapper_grouped: transa=%c, transb=%c\n", transa, transb);
 
 #ifdef USE_GRAPHS_GEMM
   run_group_graph(hipblas_gemm_grouped<float>(op_t1, op_t2), resol_id, m, n, k,
@@ -278,6 +293,9 @@ void hipblas_dgemm_wrapper(char transa, char transb, int m, int n, int k,
 
   hipblasHandle_t handle = get_hipblas_handle();
   HICBLAS_CHECK(hipblasSetStream(handle, *(hipStream_t *)stream));
+
+  printf("handle = %p\n", (void*)handle);
+
   printf("transa=%c, transb=%c, m=%d, n=%d, k=%d lda=%d tda=%d ldb=%d tdb=%d ldc=%d tdc=%d batchCount=%d\n",transa,transb,m,n,k,lda,tda,ldb,tdb,ldc,tdc,batchCount);
 
   HICBLAS_CHECK(hipblasDgemmStridedBatched(
