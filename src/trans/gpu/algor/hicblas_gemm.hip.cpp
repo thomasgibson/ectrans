@@ -210,9 +210,9 @@ public:
     printf("alphaa=%f, betaa=%f\n", alpha, beta);
     printf("handle = %p\n", (void*)handle);
     printf("stream = %d\n", (int*)stream);
-    printf("A ptr = %p\n", (void*)A);
-    printf("B ptr = %p\n", (void*)B);
-    printf("C ptr = %p\n", (void*)C);
+    printf("A ptr = %p\n", (void**)&A);
+    printf("B ptr = %p\n", (void**)&B);
+    printf("C ptr = %p\n", (void**)&C);
 
     printf("starting kernel..\n");
 
@@ -300,6 +300,10 @@ void hipblas_dgemm_wrapper(char transa, char transb, int m, int n, int k,
   printf("handle = %p\n", (void*)handle);
 
   printf("transa=%c, transb=%c, m=%d, n=%d, k=%d lda=%d tda=%d ldb=%d tdb=%d ldc=%d tdc=%d batchCount=%d\n",transa,transb,m,n,k,lda,tda,ldb,tdb,ldc,tdc,batchCount);
+
+  printf("A ptr = %p\n", (void**)&A);
+  printf("B ptr = %p\n", (void**)&B);
+  printf("C ptr = %p\n", (void**)&C);
 
   HICBLAS_CHECK(hipblasDgemmStridedBatched(
       handle, op_t1, op_t2, m, n, k, &alpha, (const double *)A, lda, tda,
