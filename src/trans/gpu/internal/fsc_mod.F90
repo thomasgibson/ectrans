@@ -117,6 +117,8 @@ ENDIF
 
 OFFSET_VAR=D%NPTRLS(MYSETW)
 
+write(*,*) "fsc_mod 1.1"
+
 !*       1.1      U AND V.
 #ifdef OMPGPU
 !$OMP TARGET TEAMS DISTRIBUTE PARALLEL DO COLLAPSE(3) DEFAULT(NONE) &
@@ -155,6 +157,7 @@ DO KGL=IBEG,IEND,IINC
 ENDDO
 
 !*      1.2      N-S DERIVATIVES
+write(*,*) "fsc_mod 1.2"
 
 IF (KSCALARS_NSDER_OFFSET >= 0) THEN
 #ifdef OMPGPU
@@ -200,6 +203,7 @@ ENDIF
 !              ---------------------
 
 !*       2.1      U AND V.
+write(*,*) "fsc_mod 2.1"
 
 ILOEN_MAX = MAXVAL(G_NLOEN)
 IF (KUV_EWDER_OFFSET >= 0) THEN
@@ -252,6 +256,7 @@ IF (KUV_EWDER_OFFSET >= 0) THEN
 ENDIF
 
 !*       2.2     SCALAR VARIABLES
+write(*,*) "fsc_mod 2.2"
 
 IF (KSCALARS_EWDER_OFFSET > 0) THEN
 #ifdef OMPGPU

@@ -159,7 +159,7 @@ CONTAINS
     HIP_STREAM = INT(ACC_GET_HIP_STREAM(1_C_INT), C_LONG)
 #endif
 #ifdef OMPGPU
-    HIP_STREAM = 1_C_LONG
+    HIP_STREAM = INT(1, C_LONG)
 #endif
 
     !     ------------------------------------------------------------------
@@ -313,35 +313,35 @@ CONTAINS
 
     print *, "NCUR_RESOL =", NCUR_RESOL
 
-    open(newunit=zaaidx, file='zaa.txt', status='replace')
-    do fidx = lbound(ZAA, dim=1), ubound(ZAA, dim=1)
-      write(zaaidx, '(F10.5)') ZAA(fidx)
-    end do
-    close(zaaidx)
+    ! open(newunit=zaaidx, file='zaa.txt', status='replace')
+    ! do fidx = lbound(ZAA, dim=1), ubound(ZAA, dim=1)
+    !   write(zaaidx, '(F10.5)') ZAA(fidx)
+    ! end do
+    ! close(zaaidx)
 
-    open(newunit=zinpidx, file='zinp.txt', status='replace')
-    do fidx = lbound(ZINP, dim=1), ubound(ZINP, dim=1)
-      write(zinpidx, '(F10.5)') ZINP(fidx)
-    end do
-    close(zinpidx)
+    ! open(newunit=zinpidx, file='zinp.txt', status='replace')
+    ! do fidx = lbound(ZINP, dim=1), ubound(ZINP, dim=1)
+    !   write(zinpidx, '(F10.5)') ZINP(fidx)
+    ! end do
+    ! close(zinpidx)
 
-    open(newunit=aoffsetsidx, file='aoffsets.txt', status='replace')
-    do fidx = lbound(AOFFSETS, dim=1), ubound(AOFFSETS, dim=1)
-      write(aoffsetsidx, '(I10)') AOFFSETS(fidx)
-    end do
-    close(aoffsetsidx)
+    ! open(newunit=aoffsetsidx, file='aoffsets.txt', status='replace')
+    ! do fidx = lbound(AOFFSETS, dim=1), ubound(AOFFSETS, dim=1)
+    !   write(aoffsetsidx, '(I10)') AOFFSETS(fidx)
+    ! end do
+    ! close(aoffsetsidx)
 
-    open(newunit=boffsetsidx, file='boffsets.txt', status='replace')
-    do fidx = lbound(BOFFSETS, dim=1), ubound(BOFFSETS, dim=1)
-      write(boffsetsidx, '(I10)') BOFFSETS(fidx)
-    end do
-    close(boffsetsidx)
+    ! open(newunit=boffsetsidx, file='boffsets.txt', status='replace')
+    ! do fidx = lbound(BOFFSETS, dim=1), ubound(BOFFSETS, dim=1)
+    !   write(boffsetsidx, '(I10)') BOFFSETS(fidx)
+    ! end do
+    ! close(boffsetsidx)
 
-    open(newunit=coffsetsidx, file='coffsets.txt', status='replace')
-    do fidx = lbound(COFFSETS, dim=1), ubound(COFFSETS, dim=1)
-      write(coffsetsidx, '(I10)') COFFSETS(fidx)
-    end do
-    close(coffsetsidx)
+    ! open(newunit=coffsetsidx, file='coffsets.txt', status='replace')
+    ! do fidx = lbound(COFFSETS, dim=1), ubound(COFFSETS, dim=1)
+    !   write(coffsetsidx, '(I10)') COFFSETS(fidx)
+    ! end do
+    ! close(coffsetsidx)
 
     print *, "IIN_STRIDES0 =", IIN_STRIDES0
     print *, "D%LEGENDRE_MATRIX_STRIDES =", D%LEGENDRE_MATRIX_STRIDES

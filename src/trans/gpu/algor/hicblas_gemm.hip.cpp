@@ -166,8 +166,8 @@ void run_group(Gemm &&gemm, int resol_id, int m, const int *n, const int *k,
                Real beta, Real *C, int ldc, const int64_t *offsetsC,
                int batchCount, hipStream_t stream, int = -1) {
   for (int i = 0; i < batchCount; ++i) {
-    if (m == 0 || n[i] == 0 || k[i] == 0)
-      continue;
+    if (m == 0 || n[i] == 0 || k[i] == 0){
+      continue;}
 
     printf("Starting gemm (batch id=%d)\n", i);
     //printf("grouped gemms: batchid=%d, m=%d, n=%d, k=%d, lda=%d, ldb=%d, ldc=%d\n",i, m, n[i], k[i],lda,ldb[i],ldc);
@@ -210,6 +210,9 @@ public:
     printf("alphaa=%f, betaa=%f\n", alpha, beta);
     printf("handle = %p\n", (void*)handle);
     printf("stream = %d\n", (int*)stream);
+    printf("A ptr = %p\n", (void*)A);
+    printf("B ptr = %p\n", (void*)B);
+    printf("C ptr = %p\n", (void*)C);
 
     printf("starting kernel..\n");
 
